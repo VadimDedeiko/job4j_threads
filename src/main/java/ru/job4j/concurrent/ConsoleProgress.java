@@ -4,7 +4,7 @@ public class ConsoleProgress implements Runnable {
 
     @Override
     public void run() {
-        String[] process = new String[] {"-", "\\", "|", "/"};
+        char[] process = new char[] {'-', '\\', '|', '/'};
         int counter = 0;
         try {
             while (!Thread.currentThread().isInterrupted()) {
@@ -16,7 +16,7 @@ public class ConsoleProgress implements Runnable {
                 Thread.sleep(500);
             }
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -24,7 +24,7 @@ public class ConsoleProgress implements Runnable {
         Thread progress = new Thread(new ConsoleProgress());
         progress.start();
         try {
-            Thread.sleep(20000);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
