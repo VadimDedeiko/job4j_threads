@@ -8,9 +8,8 @@ public class ConsoleProgress implements Runnable {
         int counter = 0;
         try {
             while (!Thread.currentThread().isInterrupted()) {
-                System.out.print("\rLoading: " + process[counter]);
-                counter++;
-                if (counter == 4) {
+                System.out.print("\rLoading: " + process[counter++]);
+                if (counter == process.length) {
                     counter = 0;
                 }
                 Thread.sleep(500);
