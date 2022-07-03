@@ -8,33 +8,35 @@ import java.net.URL;
 public class Wget implements Runnable {
     private final String url;
     private final int speed;
-    private final int intervalBytes = 1024;
-    private final int second = 1000;
+    private final String fileName;
+    private static final int INTERVALBYTES = 1024;
+    private static final int SECOND = 1000;
 
-    public Wget(String url, int speed) {
+    public Wget(String url, int speed, String fileName) {
         this.url = url;
         this.speed = speed;
+        this.fileName = fileName;
     }
 
     @Override
     public void run() {
         long bytesWrited = 0;
         try (BufferedInputStream in = new BufferedInputStream(new URL(url).openStream());
-             FileOutputStream fileOutputStream = new FileOutputStream("pom_tmp.txt")) {
-            byte[] dataBuffer = new byte[intervalBytes];
+             FileOutputStream fileOutputStream = new FileOutputStream(fileName)) {
+            byte[] dataBuffer = new byte[INTERVALBYTES];
             int bytesRead;
             long now = System.currentTimeMillis();
             long after;
             long deltaTime;
-            while ((bytesRead = in.read(dataBuffer, 0, intervalBytes)) != -1) {
+            while ((bytesRead = in.read(dataBuffer, 0, INTERVALBYTES)) != -1) {
                 fileOutputStream.write(dataBuffer, 0, bytesRead);
                 bytesWrited += bytesRead;
                 if (bytesWrited >= speed) {
                     after = System.currentTimeMillis();
                     deltaTime = after - now;
 
-                    if (deltaTime <= second) {
-                        Thread.sleep(second - deltaTime);
+                    if (deltaTime < SECOND) {
+                        Thread.sleep(SECOND - deltaTime);
                     }
                     bytesWrited = 0;
                     now = System.currentTimeMillis();
@@ -51,7 +53,8 @@ public class Wget implements Runnable {
         validateArgs(args);
         String url = args[0];
         int speed = Integer.parseInt(args[1]);
-        Thread wget = new Thread(new Wget(url, speed));
+        String fileName = args[2];
+        Thread wget = new Thread(new Wget(url, speed, fileName));
         wget.start();
         wget.join();
     }
@@ -60,8 +63,9 @@ public class Wget implements Runnable {
         if (!isURL(args[0])) {
             throw new IllegalArgumentException("Invalid URL");
         }
-        if (args.length != 2) {
-            throw new IllegalArgumentException("Enter two arguments - Url and download speed in bytes/second");
+        if (args.length != 3) {
+            throw new IllegalArgumentException("Enter three arguments "
+                    + "- Url, download speed in bytes/second and file name");
         }
         if (Integer.parseInt(args[1]) < 1) {
             throw new IllegalArgumentException("Enter positive speed");
@@ -70,7 +74,7 @@ public class Wget implements Runnable {
 
     private static boolean isURL(String url) {
         try {
-            (new java.net.URL(url)).openStream().close();
+            new URL(url).openStream().close();
             return true;
         } catch (Exception ex) {
             return false;
