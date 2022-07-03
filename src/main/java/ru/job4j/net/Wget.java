@@ -8,6 +8,8 @@ import java.net.URL;
 public class Wget implements Runnable {
     private final String url;
     private final int speed;
+    private final int intervalBytes = 1024;
+    private final int second = 1000;
 
     public Wget(String url, int speed) {
         this.url = url;
@@ -16,17 +18,32 @@ public class Wget implements Runnable {
 
     @Override
     public void run() {
+        long bytesWrited = 0;
         try (BufferedInputStream in = new BufferedInputStream(new URL(url).openStream());
-             FileOutputStream fileOutputStream = new FileOutputStream("pom_tmp.xml")) {
-            byte[] dataBuffer = new byte[1024];
+             FileOutputStream fileOutputStream = new FileOutputStream("pom_tmp.txt")) {
+            byte[] dataBuffer = new byte[intervalBytes];
             int bytesRead;
-            int count = 0;
-            while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
+            long now = System.currentTimeMillis();
+            long after;
+            long deltaTime;
+            while ((bytesRead = in.read(dataBuffer, 0, intervalBytes)) != -1) {
                 fileOutputStream.write(dataBuffer, 0, bytesRead);
-                Thread.sleep((1025 / speed) * 1000);
+                bytesWrited += bytesRead;
+                if (bytesWrited >= speed) {
+                    after = System.currentTimeMillis();
+                    deltaTime = after - now;
+
+                    if (deltaTime <= second) {
+                        Thread.sleep(second - deltaTime);
+                    }
+                    bytesWrited = 0;
+                    now = System.currentTimeMillis();
+                }
             }
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             e.printStackTrace();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -49,7 +66,6 @@ public class Wget implements Runnable {
         if (Integer.parseInt(args[1]) < 1) {
             throw new IllegalArgumentException("Enter positive speed");
         }
-        throw new IllegalArgumentException("Invalid URL");
     }
 
     private static boolean isURL(String url) {
@@ -57,8 +73,7 @@ public class Wget implements Runnable {
             (new java.net.URL(url)).openStream().close();
             return true;
         } catch (Exception ex) {
-
+            return false;
         }
-        return false;
     }
 }
