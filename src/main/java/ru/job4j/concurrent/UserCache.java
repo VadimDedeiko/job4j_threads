@@ -1,17 +1,12 @@
 package ru.job4j.concurrent;
 
-import net.jcip.annotations.NotThreadSafe;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-@NotThreadSafe
+@ThreadSafe
 public class UserCache {
     private final ConcurrentHashMap<Integer, User> users = new ConcurrentHashMap<>();
     private final AtomicInteger id = new AtomicInteger();
@@ -25,8 +20,9 @@ public class UserCache {
     }
 
     public List<User> findAll() {
-        List list = new ArrayList();
-        users.values().stream().map(User::getName).toList().forEach(s -> list.add(User.of(s)));
-        return list;
+        return this.users.values()
+                .stream()
+                .map(user -> User.of(user.getName()))
+                .collect(Collectors.toList());
     }
 }
