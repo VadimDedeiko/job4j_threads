@@ -60,24 +60,12 @@ public class Wget implements Runnable {
     }
 
     private static void validateArgs(String[] args) {
-        if (!isURL(args[0])) {
-            throw new IllegalArgumentException("Invalid URL");
-        }
         if (args.length != 3) {
             throw new IllegalArgumentException("Enter three arguments "
                     + "- Url, download speed in bytes/second and file name");
         }
         if (Integer.parseInt(args[1]) < 1) {
             throw new IllegalArgumentException("Enter positive speed");
-        }
-    }
-
-    private static boolean isURL(String url) {
-        try {
-            new URL(url).openStream().close();
-            return true;
-        } catch (Exception ex) {
-            return false;
         }
     }
 }
