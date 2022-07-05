@@ -17,7 +17,7 @@ public class CountBarrier {
     }
 
     public synchronized void await() {
-        while (count <= total) {
+        while (count < total) {
             try {
                 wait();
             } catch (InterruptedException e) {
