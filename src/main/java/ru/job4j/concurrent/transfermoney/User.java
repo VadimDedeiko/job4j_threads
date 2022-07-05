@@ -4,7 +4,7 @@ import java.util.Objects;
 
 public class User {
 
-    private int id;
+    private final int id;
     private int amount;
 
     public User(int id, int amount) {
@@ -18,6 +18,10 @@ public class User {
 
     public int getAmount() {
         return amount;
+    }
+
+    public void setAmount(int amount) {
+        this.amount = amount;
     }
 
     @Override

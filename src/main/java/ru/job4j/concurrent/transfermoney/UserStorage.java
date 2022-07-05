@@ -11,21 +11,26 @@ public class UserStorage {
     private final ConcurrentHashMap<Integer, User> storage = new ConcurrentHashMap<>();
 
     public synchronized boolean add(User user) {
-        return storage.putIfAbsent(user.getId(), new User(user.getId(), user.getAmount())) == null;
+        return storage.putIfAbsent(user.getId(), user) == null;
     }
 
     public synchronized boolean update(User user) {
-        return storage.put(user.getId(), new User(user.getId(), user.getAmount())) == null;
+        return storage.replace(user.getId(), user) == null;
     }
 
     public synchronized boolean delete(User user) {
-        return storage.remove(user.getId()) == null;
+        return storage.remove(user.getId(), user);
     }
 
-    public synchronized void transfer(int fromId, int toId, int amount) {
+    public synchronized boolean transfer(int fromId, int toId, int amount) {
+        boolean rsl = false;
         User userFrom = storage.get(fromId);
         User userTo = storage.get(toId);
-        update(new User(userFrom.getId(), userFrom.getAmount() - amount));
-        update(new User(userTo.getId(), userTo.getAmount() + amount));
+        if (userFrom != null && userTo != null && userFrom.getAmount() >= amount) {
+            userFrom.setAmount(userFrom.getAmount() - amount);
+            userTo.setAmount(userTo.getAmount() + amount);
+            rsl = true;
+        }
+        return rsl;
     }
 }
