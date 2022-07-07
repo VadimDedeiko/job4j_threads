@@ -3,11 +3,15 @@ package ru.job4j.concurrent.producerconsumer;
 public class ParallelSearch {
 
     public static void main(String[] args) {
-        SimpleBlockingQueue<Integer> queue = new SimpleBlockingQueue<Integer>();
+        SimpleBlockingQueue<Integer> queue = new SimpleBlockingQueue<>(5);
         final Thread consumer = new Thread(
                 () -> {
                     while (!Thread.currentThread().isInterrupted()) {
-                        System.out.println(queue.poll());
+                        try {
+                            System.out.println(queue.poll());
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
                     }
                 }
         );
