@@ -7,7 +7,6 @@ import java.util.Queue;
 
 @ThreadSafe
 public class SimpleBlockingQueue<T> {
-
     private final int capacity;
     @GuardedBy("this")
     private final Queue<T> queue = new LinkedList<>();
