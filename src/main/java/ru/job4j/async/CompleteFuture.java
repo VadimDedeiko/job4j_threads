@@ -144,9 +144,9 @@ public class CompleteFuture {
         int n = matrix.length;
         int[] sums = new int[2 * n];
         Map<Integer, CompletableFuture<Integer>> futures = new HashMap<>();
-        // считаем сумму по главной диагонали
+       /**считаем сумму по главной диагонали*/
         futures.put(0, getTask(matrix, 0, n - 1, n - 1));
-        // считаем суммы по побочным диагоналям
+        /**считаем суммы по побочным диагоналям*/
         for (int k = 1; k <= n; k++) {
             futures.put(k, getTask(matrix, 0, k - 1,  k - 1));
             if (k < n) {
