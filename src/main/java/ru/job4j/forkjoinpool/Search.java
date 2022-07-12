@@ -1,40 +1,47 @@
 package ru.job4j.forkjoinpool;
 
-import java.util.Arrays;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveTask;
 
-public class Search extends RecursiveTask<String> {
-    private final Object[] objects;
-    private final Object object;
+public class Search<T> extends RecursiveTask<Integer> {
+    private final T[] objects;
+    private final T object;
+    private final int start;
+    private final int finish;
+    private static final int STANDART = 10;
 
-    public Search(Object[] objects, Object object) {
+    public Search(T[] objects, T object, int start, int finish) {
         this.objects = objects;
         this.object = object;
+        this.start = start;
+        this.finish = finish;
     }
 
     @Override
-    protected String compute() {
-        if (objects.length <= 10) {
-            for (int i = 0; i < objects.length; i++) {
+    protected Integer compute() {
+        int rsl = -1;
+        if ((finish - start) <= STANDART) {
+            for (int i = start; i <= finish; i++) {
                 if (objects[i] != null && objects[i].equals(object)) {
-                    return String.valueOf(i);
+                    rsl = i;
+                    return rsl;
                 }
             }
+        } else {
+            int middle = (start + finish) / 2;
+            Search<T> searchFirst = new Search(objects, object, start, middle);
+            Search<T> searchSecond = new Search(objects, object, middle + 1, finish);
+            searchFirst.fork();
+            searchSecond.fork();
+            int first = searchFirst.join();
+            int second = searchSecond.join();
+            return first == 0 ? second : first;
         }
-        int middle = objects.length / 2;
-        Search searchFirst = new Search(
-                Arrays.copyOfRange(objects, 0, middle), object
-        );
-        Search searchSecond = new Search(
-                Arrays.copyOfRange(objects, middle, objects.length), object
-        );
-        searchFirst.fork();
-        searchSecond.fork();
-        String first = searchFirst.join();
-        String second = searchSecond.join();
-        StringBuilder stringBuilder = new StringBuilder();
-        return String.valueOf(stringBuilder.append(first).append(", ").append(second));
+        return rsl;
+    }
+
+    public static <T> int execute(T[] numbers, T search, int start, int finish) {
+        return new ForkJoinPool().invoke(new Search<T>(numbers, search, start, finish));
     }
 
     public static void main(String[] args) {
@@ -42,9 +49,7 @@ public class Search extends RecursiveTask<String> {
         for (int i = 0; i < numbers.length; i++) {
             numbers[i] = i + 2;
         }
-        Search search = new Search(numbers, 5);
-        ForkJoinPool forkJoinPool = new ForkJoinPool();
-        System.out.println(forkJoinPool.invoke(search));
+        System.out.println(execute(numbers, 5, 0, 19));
     }
 }
 
