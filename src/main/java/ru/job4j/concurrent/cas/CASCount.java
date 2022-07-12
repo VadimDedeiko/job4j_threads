@@ -2,7 +2,6 @@ package ru.job4j.concurrent.cas;
 import net.jcip.annotations.ThreadSafe;
 
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 @ThreadSafe
 public class CASCount {
