@@ -1,26 +1,17 @@
 package ru.job4j.async;
 
-import java.util.Arrays;
+import net.sf.saxon.functions.Sum;
+
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 public class RolColSum {
-    private static int i;
-    private static int j;
-
-    public static void setI(int i) {
-        RolColSum.i = i;
-    }
-
-    public static void setJ(int j) {
-        RolColSum.j = j;
-    }
 
     public static class Sums {
         private int rowSum;
         private int colSum;
-
-
 
         public int getRowSum() {
             return rowSum;
@@ -39,52 +30,92 @@ public class RolColSum {
         }
     }
 
-    /**2. Реализовать последовательную версию программы*/
+    /**
+     * 2. Реализовать последовательную версию программы
+     */
     public static Sums[] sum(int[][] matrix) {
-        Sums sum = new Sums();
-        Sums[] sums = new Sums[]{sum};
-        int i = RolColSum.i;
-        int m = RolColSum.j;
-        int resColumn = sum.colSum;
-        int resRow = sum.rowSum;
-        for (int j = 0; j < matrix[i].length; j++) {
-            resColumn += matrix[i][j];
+        Sums[] sums = new Sums[matrix.length];
+        int resColumn = 0;
+        int resRow = 0;
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[i].length; j++) {
+                resRow += matrix[i][j];
+                resColumn += matrix[j][i];
+            }
+            Sums sum = new Sums();
+            sum.setRowSum(resRow);
+            sum.setColSum(resColumn);
+            sums[i] = sum;
+            resColumn = 0;
+            resRow = 0;
         }
-
-        for (int k = 0; k < matrix.length; k++) {
-            resRow += matrix[k][m];
-        }
-        sum.setColSum(resColumn);
-        sum.setRowSum(resRow);
         return sums;
     }
 
-    /**3. Реализовать асинхронную версию программы. i - я задача считает сумму по i столбцу и i строке*/
+    /**
+     * 3. Реализовать асинхронную версию программы. i - я задача считает сумму по i столбцу и i строке
+     */
     public static Sums[] asyncSum(int[][] matrix) throws ExecutionException, InterruptedException {
-        Sums sum = new Sums();
-        Sums[] sums = new Sums[]{sum};
-        int i = RolColSum.i;
-        int m = RolColSum.j;
-        int resRow = sum.rowSum;
-        CompletableFuture<Integer> resCol = CompletableFuture.supplyAsync(() -> {
-            int resColumn = sum.colSum;
-            for (int j = 0; j < matrix[i].length; j++) {
-                resColumn += matrix[i][j];
+       /* int n = matrix.length;
+        int[] sums = new int[2 * n];
+        Map<Integer, CompletableFuture<Integer>> futures = new HashMap<>();
+        // считаем сумму по главной диагонали
+        futures.put(0, getTask(matrix, 0, n - 1, n - 1));
+        // считаем суммы по побочным диагоналям
+        for (int k = 1; k <= n; k++) {
+            futures.put(k, getTask(matrix, 0, k - 1,  k - 1));
+            if (k < n) {
+                futures.put(2 * n - k, getTask(matrix, n - k, n - 1, n - 1));
             }
-            return resColumn;
-        });
-
-        for (int k = 0; k < matrix.length; k++) {
-            resRow += matrix[k][m];
         }
-        sum.setColSum(resCol.get());
-        sum.setRowSum(resRow);
+        for (Integer key : futures.keySet()) {
+            sums[key] = futures.get(key).get();
+        }
         return sums;
+    }
+
+    public static CompletableFuture<Integer> getTask(int[][] data, int startRow, int endRow, int startCol) {
+        return CompletableFuture.supplyAsync(() -> {
+            int sum = 0;
+            int col = startCol;
+            for (int i = startRow; i <= endRow; i++) {
+                sum += data[i][col];
+                col--;
+            }
+            return sum;
+        });*/
+        Sums[] sums = new Sums[matrix.length];
+        Map<Integer, CompletableFuture<Integer[]>> futures = new HashMap<>();
+        for (int i = 0; i < matrix.length; i++) {
+            futures.put(i, getTask(matrix, i));
+        }
+        for (Integer key : futures.keySet()) {
+            Sums sum = new Sums();
+            sum.setRowSum(futures.get(key).get()[0]);
+            sum.setColSum(futures.get(key).get()[1]);
+            sums[key] = sum;
+        }
+        return sums;
+    }
+
+    public static CompletableFuture<Integer[]> getTask(int[][] matrix, int index) {
+        return CompletableFuture.supplyAsync(() -> {
+            Integer[] res = new Integer[2];
+            int resColumn = 0;
+            int resRow = 0;
+            for (int i = index; i <= index; i++) {
+                for (int j = 0; j < matrix[i].length; j++) {
+                    resRow += matrix[index][j];
+                    resColumn += matrix[j][index];
+                }
+                res[0] = resRow;
+                res[1] = resColumn;
+            }
+            return res;
+        });
     }
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-        RolColSum.setI(2);
-        RolColSum.setJ(2);
         int[][] array = {
                 {1, 2, 3},
                 {4, 5, 6},
