@@ -15,7 +15,7 @@ public class SearchTest {
     @Test
     public void whenArrayLength1() {
         String[] array = new String[]{"pavel"};
-        assertThat(0, is(Search.execute(array, "pavel", 0, array.length - 1)));
+        assertThat(0, is(Search.execute(array, "pavel", 0, 0)));
     }
 
     @Test

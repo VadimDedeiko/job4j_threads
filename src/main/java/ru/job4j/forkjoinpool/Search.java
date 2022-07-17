@@ -19,8 +19,10 @@ public class Search<T> extends RecursiveTask<Integer> {
 
     @Override
     protected Integer compute() {
-            int rsl = founded();
-        if (rsl != -1) {
+        int rsl;
+        if ((finish - start) <= STANDART) {
+            rsl = founded();
+        } else {
             int middle = (start + finish) / 2;
             Search<T> searchFirst = new Search(objects, object, start, middle);
             Search<T> searchSecond = new Search(objects, object, middle + 1, finish);
@@ -38,13 +40,11 @@ public class Search<T> extends RecursiveTask<Integer> {
     }
 
     private Integer founded() {
-        int rsl = -1;
-        if ((finish - start) <= STANDART) {
-            for (int i = start; i <= finish; i++) {
-                if (objects[i] != null && objects[i].equals(object)) {
-                    rsl = i;
-                    return rsl;
-                }
+        Integer rsl = -1;
+        for (int i = start; i <= finish; i++) {
+            if (objects[i] != null && objects[i].equals(object)) {
+                rsl = i;
+                return rsl;
             }
         }
         return rsl;
