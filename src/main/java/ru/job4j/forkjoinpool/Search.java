@@ -19,6 +19,25 @@ public class Search<T> extends RecursiveTask<Integer> {
 
     @Override
     protected Integer compute() {
+            int rsl = founded();
+        if (rsl != -1) {
+            int middle = (start + finish) / 2;
+            Search<T> searchFirst = new Search(objects, object, start, middle);
+            Search<T> searchSecond = new Search(objects, object, middle + 1, finish);
+            searchFirst.fork();
+            searchSecond.fork();
+            int first = searchFirst.join();
+            int second = searchSecond.join();
+            rsl = first == 0 ? second : first;
+        }
+        return rsl;
+    }
+
+    public static <T> int execute(T[] numbers, T search, int start, int finish) {
+        return new ForkJoinPool().invoke(new Search<T>(numbers, search, start, finish));
+    }
+
+    private Integer founded() {
         int rsl = -1;
         if ((finish - start) <= STANDART) {
             for (int i = start; i <= finish; i++) {
@@ -27,22 +46,10 @@ public class Search<T> extends RecursiveTask<Integer> {
                     return rsl;
                 }
             }
-        } else {
-            int middle = (start + finish) / 2;
-            Search<T> searchFirst = new Search(objects, object, start, middle);
-            Search<T> searchSecond = new Search(objects, object, middle + 1, finish);
-            searchFirst.fork();
-            searchSecond.fork();
-            int first = searchFirst.join();
-            int second = searchSecond.join();
-            return first == 0 ? second : first;
         }
         return rsl;
     }
 
-    public static <T> int execute(T[] numbers, T search, int start, int finish) {
-        return new ForkJoinPool().invoke(new Search<T>(numbers, search, start, finish));
-    }
 
     public static void main(String[] args) {
         Integer[] numbers = new Integer[20];
