@@ -4,14 +4,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class EmailNotification {
-    private volatile String subject;
-    private volatile String body;
-    private volatile User user;
     private ExecutorService pool;
 
+    public EmailNotification(ExecutorService pool) {
+        this.pool = pool;
+    }
+
     public synchronized void emailTo(User user) {
-        this.subject = String.format("Notification %s to email %s", user.getUsername(), user.getEmail());
-        this.body = String.format("Add a new event to %s", user.getEmail());
+        String subject = String.format("Notification %s to email %s", user.getUsername(), user.getEmail());
+        String body = String.format("Add a new event to %s", user.getEmail());
     }
 
     public void close() throws InterruptedException {
@@ -26,7 +27,9 @@ public class EmailNotification {
     }
 
     private synchronized void excute() {
+        String subject = null;
+        String body = null;
         pool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-        pool.submit(() -> send(subject, body, user.getEmail()));
+        pool.submit(() -> send(subject, body, new User("name", "email").getEmail()));
     }
 }
