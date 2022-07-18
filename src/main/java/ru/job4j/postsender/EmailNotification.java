@@ -4,7 +4,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class EmailNotification {
-    private ExecutorService pool;
+    private final ExecutorService pool;
 
     public EmailNotification(ExecutorService pool) {
         this.pool = pool;
@@ -29,7 +29,6 @@ public class EmailNotification {
     private synchronized void excute() {
         String subject = null;
         String body = null;
-        pool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         pool.submit(() -> send(subject, body, new User("name", "email").getEmail()));
     }
 }
